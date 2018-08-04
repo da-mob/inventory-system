@@ -1,0 +1,54 @@
+var express = require('express');
+var router = express.Router();
+var Cart = require('../models/cart');
+var Cart1 = require('../models/cart1');
+var User = require('../models/user');
+
+var Product = require('../models/product');
+var Order = require('../models/order');
+
+
+
+
+var col = db.xx-shopping("products").cart1;
+var cart1 = db.findOne({
+    _id: userId
+  , "products._id": productId
+  , status: "active"});
+var oldQuantity = 0;
+
+for(var i = 0; i < cart1.products.length; i++) {
+  if(cart1.products[i]._id == productId) {
+    oldQuantity = cart1.products[i].quantity;
+  }
+}
+
+var newQuantity = 2;
+var delta = newQuantity - oldQuantity;
+
+col.update({
+    _id: userId
+  , "products._id": productId
+  , status: "active"
+}, {
+  $set: {
+      modified_on: new Date()
+    , "products.$.quantity": newQuantity
+  }
+});
+
+
+
+var col = db.getSisterDB("shop").products;
+col.update({
+    _id: productId
+  , "reserved._id": userId
+  , quantity: {
+    $gte: delta
+  }
+}, {
+  , $inc: { quantity: -delta }
+    $set: {
+      "reserved.$.quantity": newQuantity, modified_on: new Date()
+    }
+})
